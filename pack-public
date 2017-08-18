@@ -1,0 +1,47 @@
+#!/bin/bash
+#
+# Pack public/ subfolder in challenge folders.
+# Nothing bad happens if there isn't an public/ subfolder.
+# The resulting archive name is challenge_path + md5sum.tar.
+# If no argument, go through all category folders in the $categories
+# variable (defined in config).
+# If one or more arguments, go through all of them (they are challenge
+# folders.
+
+# Load configuration (used by other scripts).
+source config
+
+# Use temporary folder to store archive files before packing.
+tmpdir=$(mktemp -d)
+
+# Pack challenge. Function argument is path to challenge folder.
+pack_challenge()
+{
+    challenge_path="$1"
+    if test -d "$challenge_path"/public; then
+        echo "Packing public for $challenge_path ..."
+        base=$(basename "$challenge_path")
+        cp -r "$challenge_path"/public "$tmpdir"/"$base"
+        # Use --mtime option to tar to use the same mtime (defined
+        # in config) and ensure the same md5sum for the .tar file.
+        tar --mtime="$tar_mtime" -C "$tmpdir" -cf "$base".tar "$base"
+        sum=$(md5sum "$base".tar | cut -d ' ' -f 1)
+        mv "$base".tar "$base"_"$sum".tar
+    fi
+}
+
+if test $# -eq 0; then
+    for categ in $categories; do
+        for challenge_path in "$categ"/*; do
+            pack_challenge "$challenge_path"
+        done
+    done
+    rm -r "$tmpdir"
+    exit 0
+else
+    for challenge_path in $@; do
+        pack_challenge "$challenge_path"
+    done
+fi
+
+rm -r "$tmpdir"

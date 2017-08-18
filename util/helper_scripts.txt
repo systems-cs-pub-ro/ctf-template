@@ -1,0 +1,2 @@
+# Generate contents for ~/.ssh/config for easy SSH command line connection.
+for i in $(seq 21 40); do id=$(printf "%02g" $(($i-20))); echo -e "Host owasp-ctf-$id\n    Hostname 141.85.248.$i\n    User student\n    Port 22\n"; done

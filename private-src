@@ -1,0 +1,32 @@
+#!/bin/bash
+#
+# Publish output files from the src/ subfolder to the private/ subfolder.
+# A Makefile with a private target has to be part of the src/ subfolder.
+# If no argument, go through all category folders in the $categories
+# variable (defined in config).
+# If one or more arguments, go through all of them (they are challenge
+# folders.
+
+# Load configuration (used by other scripts).
+source config
+
+# Deploy challenge. Function argument is path to challenge folder.
+private_challenge()
+{
+    challenge_path="$1"
+    if test -d "$challenge_path"/src; then
+        make -C "$challenge_path"/src private
+    fi
+}
+
+if test $# -eq 0; then
+    for categ in $categories; do
+        for challenge_path in "$categ"/*; do
+            private_challenge "$challenge_path"
+        done
+    done
+else
+    for challenge_path in $@; do
+        private_challenge "$challenge_path"
+    done
+fi
